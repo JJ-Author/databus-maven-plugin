@@ -29,7 +29,7 @@ You can configure here:
             <plugin>
               <groupId>com.github.dbpedia</groupId>
               <artifactId>databus-maven-plugin</artifactId>
-              <version>jitpack-SNAPSHOT</version>
+              <!--<version>jitpack-SNAPSHOT</version> -->
                 <configuration>
                     <labels>
                         <label>Infobox Properties@en</label>

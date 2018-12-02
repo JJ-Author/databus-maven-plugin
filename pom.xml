@@ -4,7 +4,7 @@
 
     <groupId>com.github.dbpedia</groupId>
     <artifactId>databus-maven-plugin</artifactId>
-    <version>jitpack-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>maven-plugin</packaging>
     <name>${project.artifactId}</name>
 
@@ -197,8 +197,102 @@
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
-
         <plugins>
+            <plugin>
+             <groupId>pl.project13.maven</groupId>
+             <artifactId>git-commit-id-plugin</artifactId>
+             <version>2.2.4</version>
+             <executions>
+               <execution>
+                 <id>get-the-git-infos</id>
+                 <phase>validate</phase>
+                 <goals>
+                   <goal>revision</goal>
+                 </goals>
+               </execution>
+             </executions>
+             <configuration>
+               <injectAllReactorProjects>true</injectAllReactorProjects>
+               <!-- use commit date as version: '$major.$minor.$incr' -->
+               <dateFormat>yyyy.MM.dd</dateFormat>
+               <!-- configure git-describe to produce '${abbr-sha1}' or '${abbr-sha1}-SNAPSHOT' -->
+               <gitDescribe>
+                 <always>true</always>
+                 <dirty>-SNAPSHOT</dirty>
+                 <match>__null__</match>
+               </gitDescribe>
+             </configuration>
+            </plugin>
+            <!-- workaround to set dynamic version number see https://github.com/git-commit-id/maven-git-commit-id-plugin/issues/256#issuecomment-376416054 -->
+            <plugin>
+             <groupId>org.codehaus.gmavenplus</groupId>
+             <artifactId>gmavenplus-plugin</artifactId>
+             <version>1.6</version>
+             <executions>
+               <execution>
+                 <id>change-version</id>
+                 <phase>validate</phase>
+                 <goals>
+                   <goal>execute</goal>
+                 </goals>
+                 <configuration>
+                   <scripts>
+                     <script><![CDATA[
+                     import org.apache.maven.artifact.versioning.VersionRange;
+
+                     git_revision = '${git.branch}'+'-'+'${git.commit.id}'.take(10)+'-1'
+                     if (! project.properties['revision']?.trim()) {
+                         println 'Change `version` to ' + git_revision
+                         System.properties['revision'] = git_revision
+                         project.properties['revision'] = git_revision
+                         project.properties['project.version'] = git_revision
+                         project.properties['git.build.version'] = git_revision
+                         project.version = git_revision
+                         project.artifact.version = git_revision
+                         project.artifact.versionRange = VersionRange.createFromVersion(git_revision)
+                     }
+                     ]]></script>
+                   </scripts>
+                 </configuration>
+               </execution>
+             </executions>
+             <dependencies>
+               <dependency>
+                 <groupId>org.codehaus.groovy</groupId>
+                 <artifactId>groovy-all</artifactId>
+                 <version>2.4.14</version>
+                 <scope>runtime</scope>
+               </dependency>
+             </dependencies>
+            </plugin>
+            <plugin>
+             <groupId>org.codehaus.mojo</groupId>
+             <artifactId>flatten-maven-plugin</artifactId>
+             <version>1.0.1</version>
+             <configuration>
+               <!-- <flattenMode>ossrh</flattenMode> -->
+               <flattenedPomFilename>.flattened-pom.xml</flattenedPomFilename>
+               <outputDirectory>${project.build.directory}</outputDirectory>
+               <updatePomFile>true</updatePomFile>
+             </configuration>
+             <executions>
+               <execution>
+                 <id>flatten</id>
+                 <phase>initialize</phase>
+                 <goals>
+                   <goal>flatten</goal>
+                 </goals>
+               </execution>
+               <execution>
+                 <id>flatten.clean</id>
+                 <phase>clean</phase>
+                 <goals>
+                   <goal>clean</goal>
+                 </goals>
+               </execution>
+             </executions>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>2.8.1</version>
