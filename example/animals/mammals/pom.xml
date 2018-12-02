@@ -27,8 +27,9 @@ You can configure here:
     <build>
         <plugins>
             <plugin>
-                <groupId>org.dbpedia.databus</groupId>
-                <artifactId>databus-maven-plugin</artifactId>
+              <groupId>com.github.dbpedia</groupId>
+              <artifactId>databus-maven-plugin</artifactId>
+              <version>jitpack-SNAPSHOT</version>
                 <configuration>
                     <labels>
                         <label>Infobox Properties@en</label>
